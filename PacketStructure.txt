@@ -1,0 +1,65 @@
+TRIBES 1.11 SERVER MATCHMAKING PROTOCOL 
+
+Every PACKET being exchanged through the master should be at greater than or equal to 64 bits 
+
+GENERAL HEADER: 
+UINT  8BIT ... VERSION NUMBER (Always 0x10 for TRIBES 1.11) 
+UINT  8BIT ... PACKET TYPE 
+
+PACKET TYPE 0x03 (Master Server Query From Client): 
+UINT  8BIT ... PACKET NUMBER (If 0xFF, send ALL SERVERS) 
+UINT  8BIT ... PACKET NUMBER TO SEND (Specific packet number to send) 
+UINT 16BIT ... PACKET KEY 
+
+PACKET TYPE 0x03 ERRATA: 
+At this point, the server would reply with whatever information is required. The proper way to format the reply packet is shown below. 
+
+PACKET TYPE 0x06 (Master Server Reply To Client): 
+UINT  8BIT ... PACKET NUMBER 
+UINT  8BIT ... PACKET TOTAL 
+UINT 16BIT ... PACKET KEY 
+UINT 16BIT ... MASTER SERVER ID 
+PASCAL STRING ... MOTD* 
+PASCAL STRING ... MASTER SERVER NAME* 
+UINT  8BIT ... RESERVED 
+UINT  8BIT ... NUMBER OF SERVERS IN PACKET** 
+(FOR EACH SERVER) 
+UINT  8BIT ... RESERVED (Always 0x06) 
+UINT  8BIT ... IP ENTRY 1 
+UINT  8BIT ... IP ENTRY 2 
+UINT  8BIT ... IP ENTRY 3 
+UINT  8BIT ... IP ENTRY 4 
+UINT 16BIT ... SERVER PORT 
+
+PACKET TYPE 0x06 ERRATA: 
+Proper protocol demands that every packet be filled with the maximum amout of servers. The maximum packet size should be decided by the server operator and not hardcoded. For the client, you should only accept replies if you specifically sent a packet with the PACKET KEY specified, otherwise discard as this is a spoofed packet. *Only Included if PACKET NUMBER is equal to 1. **To prevent overflows, do not use this specifically, read in each server entry individually. 
+
+PACKET TYPE 0x04 (Game Server Information Reply): 
+UINT  8BIT ... PACKET NUMBER 
+UINT  8BIT ... GAME TYPE (Always 0xF0 for TRIBES, disregard if not) 
+UINT 16BIT ... PACKEY KEY 
+ASCII STRING (LEN 32) ... SERVER NAME* 
+
+PACKET TYPE 0x04 ERRATA: 
+This is in response to a Verification Request packet, 0x03, below. Rest of PACKET can vary depending on what information keys were sent. *Reply only if Request contains INFORMAITON KEY "s_name" 
+
+PACKET TYPE 0x03 [GAMESERVER SIDE] (Game Server Verification and Information Request): 
+UINT  8BIT ... PACKET NUMBER (ALWAYS 0xFF) 
+UINT  8BIT ... PACKET TOTAL (ALWAYS 0x00) 
+UINT 16BIT ... PACKET KEY 
+PASCAL STRING ... INFORMATION KEY(s) 
+
+PACKET TYPE 0x03 [GAMESERVER SIDE] ERRATA: 
+There are several information keys, the most important of which being "s_name" 
+
+PACKET TYPE 0x05 (Server Heartbeat): 
+(HEADER ONLY) 
+
+PACKET TYPE 0x05 ERRATA: 
+This is just a periodic packet sent from the GAMESERVER, hence it's small size. 
+
+PACKET TYPE 0x07 (Game Server Verification Reply): 
+... 
+
+PACKET TYPE 0x07 ERRATA: 
+This can be ignored, if the master server is programmed correctly.
